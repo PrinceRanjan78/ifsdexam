@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Team Players</title>
+</head>
+<body>
+  <div id="root"></div>
+
+  <script src="https://unpkg.com/react@17.0.2/umd/react.production.min.js"></script>
+  <script src="https://unpkg.com/react-dom@17.0.2/umd/react-dom.production.min.js"></script>
+  <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
+
+  <script>
+    const { useState, useEffect } = React;
+
+    const App = () => {
+      const [players, setPlayers] = useState([]);
+      const [name, setName] = useState('');
+      const [score, setScore] = useState('');
+
+      useEffect(() => {
+        fetchPlayers();
+      }, []);
+
+      const fetchPlayers = async () => {
+        try {
+          const response = await axios.get('http://localhost:5000/players');
+          setPlayers(response.data);
+        } catch (error) {
+          console.error('Failed to fetch players:', error);
+        }
+      };
+
+      const createPlayer = async () => {
+        try {
+          await axios.post('http://localhost:5000/players', { name, score });
+          fetchPlayers();
+          setName('');
+          setScore('');
+        } catch (error) {
+          console.error('Failed to create player:', error);
+        }
+      };
+
+      const updatePlayer = async (id) => {
+        try {
+          await axios.put(`http://localhost:5000/players/${id}`, { name, score });
+          fetchPlayers();
+          setName('');
+          setScore('');
+        } catch (error) {
+          console.error('Failed to update player:', error);
+        }
+      };
+
+      const deletePlayer = async (id) => {
+        try {
+          await axios.delete(`http://localhost:5000/players/${id}`);
+          fetchPlayers();
+        } catch (error) {
+          console.error('Failed to delete player:', error);
+        }
+      };
+
+      return (
+        <div>
+          <h1>Team Players</h1>
+          <form onSubmit={createPlayer}>
+            <input type="text" placeholder="Name" value={name} onChange={(e) => setName(e.target.value)} required />
+            <input type="number" placeholder="Score" value={score} onChange={(e) => setScore(e.target.value)} required />
+            <button type="submit">Add Player</button>
+          </form>
+          <ul>
+            {players.map((player) => (
+              <li key={player._id}>
+                {player.name} - {player.score}
+                <button onClick={() => updatePlayer(player._id)}>Update</button>
+                <button onClick={() => deletePlayer(player._id)}>Delete</button>
+              </li>
+            ))}
+          </ul>
+        </div>
+      );
+    };
+
+    ReactDOM.render(<App />, document.getElementById('root'));
+  </script>
+</body>
+</html>
